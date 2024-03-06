@@ -146,7 +146,6 @@ void inicilizarPantalla(){
     set_color_depth(32);//PROFUNDIDAD DE COLOR DE 32 BITS
     set_gfx_mode(GFX_AUTODETECT,ancho,alto,0,0);//ALLEGRO - AUTODETECTAR EL CONTROLADOR DE GRAFICOS Y DEFINIR LAS DIMENSIONES DE LA PANTALLA  (X,Y,0,0)  LOS OTROS DOS 0 SE USAN PARA SCROLLING , EN CASO DE QUERER AÑADIR PIXELES OCULTOS
     buffer=create_bitmap(ancho,alto);//CREACION DE BUFFER CON LAS DIMENSIONES ESTABLECIDAS
-
     logo=load_bitmap("img/logo.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
     panel=load_bitmap("img/panel.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
     recuadro=load_bitmap("img/recuadro.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
@@ -175,7 +174,6 @@ void inicilizarPantalla(){
 
 /*  INICIO */
 int main (){
-
 if(inicializar() == 1) return 1;//VERIFICAR EL SISTEMA DE SONIDO , EN CASO DE ERROR CIERRA TODO
     while(!fin){
         armadoPantalla();//CARGAR LOS DATOS A PANTALLA
@@ -184,6 +182,5 @@ if(inicializar() == 1) return 1;//VERIFICAR EL SISTEMA DE SONIDO , EN CASO DE ER
            jugar();//LLAMAR A FUNCION PARA INICIAR JUEGO
         }
     }
-
 }
 END_OF_MAIN()
