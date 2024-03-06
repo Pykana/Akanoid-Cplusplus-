@@ -87,86 +87,101 @@ int     filaBola;
 int     elemento;
 int     fila[]={20,50,80,110,140,170,200};
 
-
-/* DECLARAR */
+/* DECLARACIONES*/
 int inicializar ();
 void inicilizarPantalla ();
 void inicilizarSonidos();
-
+void armadoPantalla ();
+void jugar();
 
 /* FUNCIONES */
+/* DETECTAR TARJETA DE SONIDO, TECLADO E INICIALIZAR ALLEGRO */
 int inicializar (){
-
-    allegro_init();
-    install_keyboard();
-
-    set_window_title("Arkanoid -By Pykana-");
-
-    if(install_sound(DIGI_AUTODETECT,MIDI_AUTODETECT,NULL)!=0 ){
-        allegro_message("Error !  Inicializando sistema de sonido \n\n\n" , allegro_error);
+    allegro_init();//INICIALIZAR ALLEGRO
+    install_keyboard();//INICIALIZAR TECLADO
+    set_window_title("Arkanoid -By Pykana-");//TITULO DE LA VENTANA DE JUEGO
+    if(install_sound(DIGI_AUTODETECT,MIDI_AUTODETECT,NULL)!=0 ){//DETECTAR TARJETA SONIDO
+        allegro_message("Error !  Inicializando sistema de sonido \n\n\n" , allegro_error);//MENSAJE EN CASO DE ERROR
         return 1;
     }
-
     inicilizarPantalla();
     return 0;
 }
 
+/* CARGAR SONIDOS */
 void inicilizarSonidos(){
-    set_volume(230,209);
+    set_volume(230,209);//INICIALIZAR VOLUMEN
 
-    MusicaInicio=load_midi("bgm/ark.mid");
-    MusicaJuego=load_midi("bgm/Arkanoid.mid");
+    MusicaInicio=load_midi("bgm/ark.mid");//CARGAR ARCHIVO MIDI DE LA RUTA ESTABLECIDA
+    MusicaJuego=load_midi("bgm/Arkanoid.mid");//CARGAR ARCHIVO MIDI DE LA RUTA ESTABLECIDA
 
-    SonidoInicioJuegoSelect=load_wav("bgm/InicioJuego.wav");
-    SonidoInicioNivel=load_wav("bgm/inicioNivel.wav");
-    SonidoLadrillo=load_wav("bgm/ladrilloRoto.wav");
-    SonidoReboteBola=load_wav("bgm/rebotePelota.wav");
-    SonidoVidaExtra=load_wav("bgm/vidaExtra.wav");
-    SonidoVidaPerdida=load_wav("bgm/fallo.wav");
-    SonidoGameOver=load_wav("bgm/SonidoGameOver.wav");
-    SonidoRevivir=load_wav("bgm/revivir.wav");
-    SonidoReboteBolaPared=load_wav("bgm/rebotaParedes.wav");
+    SonidoInicioJuegoSelect=load_wav("bgm/InicioJuego.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoInicioNivel=load_wav("bgm/inicioNivel.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoLadrillo=load_wav("bgm/ladrilloRoto.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoReboteBola=load_wav("bgm/rebotePelota.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoVidaExtra=load_wav("bgm/vidaExtra.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoVidaPerdida=load_wav("bgm/fallo.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoGameOver=load_wav("bgm/SonidoGameOver.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoRevivir=load_wav("bgm/revivir.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoReboteBolaPared=load_wav("bgm/rebotaParedes.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
 
 }
+
+/* CARGAR ELEMENTOS DE PANTALLA */
+void armadoPantalla (){
+    //clear_to_color(buffer,makecol(0,0,0));//CARGAR COLOR DE BUFFER PERO USANDO LA FUNCIONA MAKECOL PARA LOS COLORES EN LUGAR HEX
+    clear_to_color(buffer,0x000000);//CARGAR COLOR DE BUFFER CON EL COLOR EN DATOS HEXADECIMAL
+    draw_sprite(buffer,logo,615,5);//CARGAR SPRITE EN LA POSICION ESTABLECIDA       (X),  (Y)
+    draw_sprite(buffer,panel,620,140);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
+    draw_sprite(buffer,recuadro,5,10);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
+    draw_sprite(buffer,fondo1,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
+    draw_sprite(buffer,base,baseX,660);//CARGAR SPRITE EN LA POSICION ESTABLECIDA   (X),  (Y)
+    circlefill(buffer,bolaX,bolaY,10, makecol(124,250,16) );//CREAR CIRULO CON RELLENO EN BUFFER , CON DIMENSIONES (X), (Y), DIAMETRO, COLOR
+    blit(buffer,screen,0,0,0,0, ancho,alto);//MANDAR A PANTALLA LAS COSAS CARGADAS A BUFFER , SCREEN (PUEDE IR OTRO BUFFER), COORDENADAS (0,0,0,0), ANCHO Y ALTO DE VENTANA
+}
+
+/* CARGAR ELEMENTOS DE PANTALLA */
 
 void inicilizarPantalla(){
+    set_color_depth(32);//PROFUNDIDAD DE COLOR DE 32 BITS
+    set_gfx_mode(GFX_AUTODETECT,ancho,alto,0,0);//ALLEGRO - AUTODETECTAR EL CONTROLADOR DE GRAFICOS Y DEFINIR LAS DIMENSIONES DE LA PANTALLA  (X,Y,0,0)  LOS OTROS DOS 0 SE USAN PARA SCROLLING , EN CASO DE QUERER AÑADIR PIXELES OCULTOS
+    buffer=create_bitmap(ancho,alto);//CREACION DE BUFFER CON LAS DIMENSIONES ESTABLECIDAS
 
-    set_color_depth(32);
-    set_gfx_mode(GFX_AUTODETECT,ancho,alto,0,0);
-    buffer=create_bitmap(ancho,alto);
-
-    logo=load_bitmap("img/logo.bmp", NULL);
-    panel=load_bitmap("img/panel.bmp", NULL);
-    recuadro=load_bitmap("img/recuadro.bmp", NULL);
-    fondo1=load_bitmap("img/fondo1.bmp", NULL);
-      fondo2=load_bitmap("img/fondo2.bmp", NULL);
-        fondo3=load_bitmap("img/fondo3.bmp", NULL);
-          fondo4=load_bitmap("img/fondo4.bmp", NULL);
-            fondo5=load_bitmap("img/fondo5.bmp", NULL);
-    lad1=load_bitmap("img/lad1.bmp", NULL);
-     lad2=load_bitmap("img/lad2.bmp", NULL);
-      lad3=load_bitmap("img/lad3.bmp", NULL);
-       lad4=load_bitmap("img/lad4.bmp", NULL);
-        lad5=load_bitmap("img/lad5.bmp", NULL);
-         lad6=load_bitmap("img/lad6.bmp", NULL);
-          lad7=load_bitmap("img/lad7.bmp", NULL);
-           ladd=load_bitmap("img/ladd.bmp", NULL);
-    gameover=load_bitmap("img/gameover.bmp", NULL);
-    base=load_bitmap("img/base.bmp", NULL);
-     base2=load_bitmap("img/base2.bmp", NULL);
-      base3=load_bitmap("img/base3.bmp", NULL);
-       base4=load_bitmap("img/base4.bmp", NULL);
+    logo=load_bitmap("img/logo.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+    panel=load_bitmap("img/panel.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+    recuadro=load_bitmap("img/recuadro.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+    gameover=load_bitmap("img/gameover.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+    /*FONDOS*/
+    fondo1=load_bitmap("img/fondo1.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+      fondo2=load_bitmap("img/fondo2.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+        fondo3=load_bitmap("img/fondo3.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+          fondo4=load_bitmap("img/fondo4.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+            fondo5=load_bitmap("img/fondo5.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+    /*LADRILLOS*/
+    lad1=load_bitmap("img/ladrillo1.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+     lad2=load_bitmap("img/ladrillo2.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+      lad3=load_bitmap("img/ladrillo3.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+       lad4=load_bitmap("img/ladrillo4.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+        lad5=load_bitmap("img/ladrillo5.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+         lad6=load_bitmap("img/ladrillo6.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+          lad7=load_bitmap("img/ladrillo7.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+           ladd=load_bitmap("img/ladrilloduro.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+    /*RECTANGULO BASE - JUGADOR*/
+    base=load_bitmap("img/base.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+     base2=load_bitmap("img/base2.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+      base3=load_bitmap("img/base3.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+       base4=load_bitmap("img/base4.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
 }
 
-/*  CODIGO */
+/*  INICIO */
 int main (){
 
-if(inicializar() ==1) return 1;
-
+if(inicializar() == 1) return 1;//VERIFICAR EL SISTEMA DE SONIDO , EN CASO DE ERROR CIERRA TODO
     while(!fin){
-        if( key[KEY_ESC] )fin =true;
-        if( key[KEY_ENTER]&& juegoiniciado == false ){
-
+        armadoPantalla();//CARGAR LOS DATOS A PANTALLA
+        if( key[KEY_ESC] )fin =true;//EN CASO DE PRESIONAR ESC , SE CIERRA EL JUEGO
+        if( key[KEY_ENTER]&& juegoiniciado == false ){//EN CASO DE PRESIONAR ENTER , INICIA EL JUEGO
+           jugar();//LLAMAR A FUNCION PARA INICIAR JUEGO
         }
     }
 
