@@ -93,6 +93,13 @@ void inicilizarPantalla ();
 void inicilizarSonidos();
 void armadoPantalla ();
 void jugar();
+void inicializarJuegoData();
+void inicializarNivel();
+void validacionBase();
+void muestraLadrillo();
+void nuevaBola();
+void teclasSonido();
+void armarPantalla();
 
 /* FUNCIONES */
 /* DETECTAR TARJETA DE SONIDO, TECLADO E INICIALIZAR ALLEGRO */
@@ -102,19 +109,17 @@ int inicializar (){
     set_window_title("Arkanoid -By Pykana-");//TITULO DE LA VENTANA DE JUEGO
     if(install_sound(DIGI_AUTODETECT,MIDI_AUTODETECT,NULL)!=0 ){//DETECTAR TARJETA SONIDO
         allegro_message("Error !  Inicializando sistema de sonido \n\n\n" , allegro_error);//MENSAJE EN CASO DE ERROR
-        return 1;
+        return 1;//RETORNA 1 EN CASO DE ERRORES
     }
-    inicilizarPantalla();
-    return 0;
+    inicilizarPantalla();//INICIA LA CARGA DE DATOS A PANTALLA
+    return 0;//RETORNA 0 EN CASO DE NO TENER ERRORES
 }
 
 /* CARGAR SONIDOS */
 void inicilizarSonidos(){
     set_volume(230,209);//INICIALIZAR VOLUMEN
-
     MusicaInicio=load_midi("bgm/ark.mid");//CARGAR ARCHIVO MIDI DE LA RUTA ESTABLECIDA
     MusicaJuego=load_midi("bgm/Arkanoid.mid");//CARGAR ARCHIVO MIDI DE LA RUTA ESTABLECIDA
-
     SonidoInicioJuegoSelect=load_wav("bgm/InicioJuego.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
     SonidoInicioNivel=load_wav("bgm/inicioNivel.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
     SonidoLadrillo=load_wav("bgm/ladrilloRoto.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
@@ -124,7 +129,6 @@ void inicilizarSonidos(){
     SonidoGameOver=load_wav("bgm/SonidoGameOver.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
     SonidoRevivir=load_wav("bgm/revivir.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
     SonidoReboteBolaPared=load_wav("bgm/rebotaParedes.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
-
 }
 
 /* CARGAR ELEMENTOS DE PANTALLA */
@@ -170,6 +174,62 @@ void inicilizarPantalla(){
      base2=load_bitmap("img/base2.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
       base3=load_bitmap("img/base3.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
        base4=load_bitmap("img/base4.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+}
+
+/* ESTADO DE NUEVO JUEGO */
+void inicializarJuegoData(){
+        level==1;//EN JUEGO NUEVO INICIA EN NIVEL 1
+        fin=false;//RESETEA EL ESTADO FIN DE JUEGO A FALSE PARA NUEVA PARTIDA
+}
+
+/* CREACION DE ESCENARIO PARA JUEGO */
+void inicializarNivel(){
+
+}
+
+/* VALIDACION DE LA BASE DEL JUGADOR */
+void validacionBase(){
+
+}
+
+/* VALIDACION DE LADRILLOS */
+void muestraLadrillo(){
+
+}
+
+/* VALIDACION DE LA BOLA */
+void nuevaBola(){
+
+}
+
+/* VALIDACION DE LA TECLAS DE SONIDO */
+void teclasSonido(){
+
+}
+
+/* VALIDACION DE LA TECLAS DE SONIDO */
+void armarPantalla(){
+
+}
+
+/*  INTERACCION CON EL JUEGO  */
+void jugar(){
+        inicializarJuegoData();//PONER LOS VALORES DEFAULT
+        while(!key[KEY_ESC]&& !fin){//CICLO CONTINUO MIENTRAS EL JUGADOR JUEGA
+            inicializarNivel();//CREAR NIVEL
+                while(!nuevonivel && !key[KEY_ESC] && vidas>0){//VERIFICA SI EL USUARIO TERMINO EL NIVEL
+                        if(key[KEY_SPACE]&& enjuego=false){//VALIDACION DE TECLAS EN CASO EL JUGADOR ESTE JUGANDO
+                                enjuego=true;//INICIA EL JUEGO
+                        }
+                    validacionBase();//VERIFICA EL ESTADO ACTUAL DE LA BASE QUE MANEJA DEL JUGADOR - LADRILLO
+                    if(enjuego){
+                        muestraLadrillo();//VERIFICA EL ESTADO ACTUAL DE LOS BLOQUES CON LOS QUE INTERACTUA EL JGADOR
+                        nuevaBola();//CREA UNA BOLA EN LA POSICION INICIAL
+                    }
+                    teclasSonido();//VERIFICA SI EL JUGADOR PRESIONO LA TECLA ESPECIFICA PARA MANEJAR EL SONIDO
+                    armarPantalla();//ARMADO DE PANTALLA EN TIEMPO REAL -- CUANDO EL JUGADOR INTERACTUE CON LOS BLOQUES
+                }
+        }
 }
 
 /*  INICIO */
