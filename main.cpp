@@ -272,7 +272,7 @@ void teclasSonido(){
         midi_pause();//PAUSA MUSICA
     }else{//SI NO
         musica=true;//VALOR MUSICA A TRUE
-        musica_resume();//RESUME LA MUSICA
+        midi_resume();//RESUME LA MUSICA
     }
   }
   if(efectos){//VERIFICA EL ESTADO DE MUSICA
