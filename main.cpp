@@ -31,9 +31,9 @@ SAMPLE  *SonidoBoteBolaBase;
 SAMPLE  *SonidoGameOver;
 
 /* FUENTES */
-DATEFILE *datfile;
-FONT     *Akarnoid;
-FONT     *ARIAL;
+DATAFILE *datafile;
+FONT     *Arkarnoid;
+FONT     *NTRS;
 
 /* IMAGENES */
 BITMAP  *buffer;
@@ -92,19 +92,38 @@ int     filaBola;
 int     elemento;
 int     fila[]={20,50,80,110,140,170,200};
 
+/* PANTALLAS */
+int     pant1[63]={1,1,1,1,1,1,1,1,1,
+                   2,2,2,2,2,2,2,2,2,
+                   3,3,3,3,3,3,3,3,3,
+                   4,4,4,4,4,4,4,4,4,
+                   5,5,5,5,5,5,5,5,5,
+                   6,6,6,6,6,6,6,6,6,
+                   7,7,7,7,7,7,7,7,7};
+
+int     pant2[63]={1,2,3,4,0,0,5,6,7,
+                   5,6,7,0,0,1,2,3,4,
+                   1,3,4,0,0,3,3,3,3,
+                   4,4,4,4,5,5,5,5,5,
+                   2,0,0,1,1,0,0,7,7,
+                   3,4,5,6,7,1,2,0,0,
+                   0,0,0,7,7,2,1,0,0};
+/* *** */
+
 /* DECLARACIONES*/
 int inicializar ();
-void inicilizarPantalla ();
 void inicilizarSonidos();
+void inicilizarPantalla();
 void armadoPantalla ();
-void jugar();
 void inicializarJuegoData();
 void inicializarNivel();
 void validacionBase();
 void muestraLadrillo();
 void nuevaBola();
 void teclasSonido();
-void armarPantalla();
+void jugar();
+void ConfiguraNivel();
+void RetomarJuego();
 
 /* FUNCIONES */
 /* DETECTAR TARJETA DE SONIDO, TECLADO E INICIALIZAR ALLEGRO */
@@ -116,11 +135,17 @@ int inicializar (){
         allegro_message("Error !  Inicializando sistema de sonido \n\n\n" , allegro_error);//MENSAJE EN CASO DE ERROR
         return 1;//RETORNA 1 EN CASO DE ERRORES
     }
-    inicilizarPantalla();//INICIA LA CARGA DE DATOS A PANTALLA
+    /* CARGA DE FUENTES */
+    datafile=load_datafile("font/Fuentes.dat");//CARGA DE FUENTES DESDE EL ARCHIVO GENERADO POR TTF2PCX Y GRABBER
+    Arkarnoid=(FONT*)datafile[0].dat;//CARGA LA FUENTE DE LA POSICION 0 Y LO ASIGNA A ARKANOID
+    NTRS=(FONT*)datafile[1].dat;//CARGA LA FUENTE DE LA POSICION 1 Y LO ASIGNA A NTRS
+    /* **** */
+    inicilizarPantalla();//INICIA LA CARGA DE IMAGENES
+    inicilizarSonidos();//INICIA LA CARGA DE SONIDOS
     return 0;//RETORNA 0 EN CASO DE NO TENER ERRORES
 }
 
-/* CARGAR SONIDOS */
+/* CARGAR SONIDOS A MEMORIA */
 void inicilizarSonidos(){
     set_volume(230,209);//INICIALIZAR VOLUMEN
     MusicaInicio=load_midi("bgm/ark.mid");//CARGAR ARCHIVO MIDI DE LA RUTA ESTABLECIDA
@@ -136,21 +161,7 @@ void inicilizarSonidos(){
     SonidoReboteBolaPared=load_wav("bgm/rebotaParedes.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
 }
 
-/* CARGAR ELEMENTOS DE PANTALLA */
-void armadoPantalla (){
-    //clear_to_color(buffer,makecol(0,0,0));//CARGAR COLOR DE BUFFER PERO USANDO LA FUNCIONA MAKECOL PARA LOS COLORES EN LUGAR HEX
-    clear_to_color(buffer,0x000000);//CARGAR COLOR DE BUFFER CON EL COLOR EN DATOS HEXADECIMAL
-    draw_sprite(buffer,logo,615,5);//CARGAR SPRITE EN LA POSICION ESTABLECIDA       (X),  (Y)
-    draw_sprite(buffer,panel,620,140);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
-    draw_sprite(buffer,recuadro,5,10);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
-    draw_sprite(buffer,fondo1,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
-    draw_sprite(buffer,base,baseX,660);//CARGAR SPRITE EN LA POSICION ESTABLECIDA   (X),  (Y)
-    circlefill(buffer,bolaX,bolaY,10, makecol(124,250,16) );//CREAR CIRULO CON RELLENO EN BUFFER , CON DIMENSIONES (X), (Y), DIAMETRO, COLOR
-    blit(buffer,screen,0,0,0,0, ancho,alto);//MANDAR A PANTALLA LAS COSAS CARGADAS A BUFFER , SCREEN (PUEDE IR OTRO BUFFER), COORDENADAS (0,0,0,0), ANCHO Y ALTO DE VENTANA
-}
-
-/* CARGAR ELEMENTOS DE PANTALLA */
-
+/* CARGA ELEMENTOS DE MEMORIA */
 void inicilizarPantalla(){
     set_color_depth(32);//PROFUNDIDAD DE COLOR DE 32 BITS
     set_gfx_mode(GFX_AUTODETECT,ancho,alto,0,0);//ALLEGRO - AUTODETECTAR EL CONTROLADOR DE GRAFICOS Y DEFINIR LAS DIMENSIONES DE LA PANTALLA  (X,Y,0,0)  LOS OTROS DOS 0 SE USAN PARA SCROLLING , EN CASO DE QUERER AÑADIR PIXELES OCULTOS
@@ -181,6 +192,27 @@ void inicilizarPantalla(){
        base4=load_bitmap("img/base4.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
 }
 
+/* MOSTRADO DE ELEMENTOS DE PANTALLA */
+void armadoPantalla (){
+    //clear_to_color(buffer,makecol(0,0,0));//CARGAR COLOR DE BUFFER PERO USANDO LA FUNCIONA MAKECOL PARA LOS COLORES EN LUGAR HEX
+    clear_to_color(buffer,0x000000);//CARGAR COLOR DE BUFFER CON EL COLOR EN DATOS HEXADECIMAL
+    draw_sprite(buffer,logo,615,5);//CARGAR SPRITE EN LA POSICION ESTABLECIDA       (X),  (Y)
+    draw_sprite(buffer,panel,620,140);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
+    /* TEXTO EN PANTALLA */
+    textprintf_ex(panel,NTRS,170,23,makecol(0,0,0),makecol(0,0,0),"              ");//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR
+    textprintf_ex(panel,NTRS,170,23,makecol(255,0,0),makecol(0,0,0),"%d",level);//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR (LEVE)
+    textprintf_ex(panel,NTRS,200,85,makecol(0,0,0),makecol(0,0,0),"              ");//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR
+    textprintf_ex(panel,NTRS,200,85,makecol(255,0,0),makecol(0,0,0),"%d",score);//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR (LEVE)
+    textprintf_ex(panel,NTRS,170,150,makecol(0,0,0),makecol(0,0,0),"              ");//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR
+    textprintf_ex(panel,NTRS,170,150,makecol(255,0,0),makecol(0,0,0),"%d",vidas);//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR (LEVE)
+    /* *** */
+    draw_sprite(buffer,recuadro,5,10);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
+    draw_sprite(buffer,fondo1,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
+    draw_sprite(buffer,base,baseX,660);//CARGAR SPRITE EN LA POSICION ESTABLECIDA   (X),  (Y)
+    circlefill(buffer,bolaX,bolaY,10, makecol(124,250,16) );//CREAR CIRULO CON RELLENO EN BUFFER , CON DIMENSIONES (X), (Y), DIAMETRO, COLOR
+    blit(buffer,screen,0,0,0,0, ancho,alto);//MANDAR A PANTALLA LAS COSAS CARGADAS A BUFFER , SCREEN (PUEDE IR OTRO BUFFER), COORDENADAS (0,0,0,0), ANCHO Y ALTO DE VENTANA
+}
+
 /* ESTADO DE NUEVO JUEGO */
 void inicializarJuegoData(){
         level==1;//EN JUEGO NUEVO INICIA EN NIVEL 1
@@ -189,7 +221,32 @@ void inicializarJuegoData(){
 
 /* CREACION DE ESCENARIO PARA JUEGO */
 void inicializarNivel(){
+    ConfiguraNivel();//ENTRA A LA CONFIGURACION DEL NIVEL - PANTALLA POR NIVEL
+    RetomarJuego();//ENTRA A RETOMAR JUEGO - CAMBIO PARAMETROS A SU ESTADO BASE
+    if(efectos){//VERIFICA EL ESTADO ACTUAL DE EFECTOS
+        play_sample(SonidoInicioNivel,200,150,1000,0);//ARCHIVO SAMPLE, VOLUMEN, PAN, FRECUENCIA, LOOP
+    }
+}
 
+/* CONFIGURACION DEL NIVEL */
+void ConfiguraNivel(){
+   for (int i=0;i<63;i++){//RECORRIDO DE CADA MAPA DE LADRILLOS
+          switch(level){//VERIFICA EN QUE NIVEL SE ENCUENTRA EL JUGADOR
+            case 1:  mapa[i]=pant1[i];//LEVEL 1 = CARGA PANTALLA1
+            case 2:  mapa[i]=pant2[i];//LEVEL 2 = CARGA PANTALLA2
+            default: mapa[i]=rand()%9;//LEVEL 3 EN ADELANTE PONES LADRILLOS ALEATORIOS
+          }
+    }
+}
+
+/* CONFIGURACION Y VALIDACION DEL ESTADO DEL JUEGO */
+void RetomarJuego(){
+    baseX=255;//CENTRA LADRIO BASE - JUGADOR
+    bolaX=285;//CENTRA BOLA POSICION X
+    bolaY=650;//CENTRA BOLA POSICION Y
+    enjuego = false;//VUELVE AL ESTADO FALSE - EN ESPERA DEL JUGADOR
+    nuevonivel= false;//DETIENE EL ARMADO
+    armadoPantalla();//LLAMAR A ARMAR PANTALLA
 }
 
 /* VALIDACION DE LA BASE DEL JUGADOR */
@@ -197,24 +254,34 @@ void validacionBase(){
 
 }
 
-/* VALIDACION DE LADRILLOS */
+/* CONFIGURACION Y MOSTRADO DE LADRILLOS */
 void muestraLadrillo(){
 
 }
 
-/* VALIDACION DE LA BOLA */
+/* CREACION DE LA BOLA */
 void nuevaBola(){
 
 }
 
 /* VALIDACION DE LA TECLAS DE SONIDO */
 void teclasSonido(){
-
-}
-
-/* VALIDACION DE LA TECLAS DE SONIDO */
-void armarPantalla(){
-
+  if(musica){//VERIFICA EL ESTADO DE MUSICA
+      if(key[KEY_DEL]){//SI PRESIONA DEL
+        musica =false;//VALOR MUSICA A FALSE
+        midi_pause();//PAUSA MUSICA
+    }else{//SI NO
+        musica=true;//VALOR MUSICA A TRUE
+        musica_resume();//RESUME LA MUSICA
+    }
+  }
+  if(efectos){//VERIFICA EL ESTADO DE MUSICA
+      if(key[KEY_TAB]){//SI PRESIONA TAB
+        musica=true;//VALOR EFECTOS A TRUE
+    }else{//SI NO
+        musica=true;//VALOR EFECTOS A TRUE
+    }
+  }
 }
 
 /*  INTERACCION CON EL JUEGO  */
@@ -232,7 +299,7 @@ void jugar(){
                         nuevaBola();//CREA UNA BOLA EN LA POSICION INICIAL
                     }
                     teclasSonido();//VERIFICA SI EL JUGADOR PRESIONO LA TECLA ESPECIFICA PARA MANEJAR EL SONIDO
-                    armarPantalla();//ARMADO DE PANTALLA EN TIEMPO REAL -- CUANDO EL JUGADOR INTERACTUE CON LOS BLOQUES
+                    armadoPantalla();//ARMADO DE PANTALLA EN TIEMPO REAL -- CUANDO EL JUGADOR INTERACTUE CON LOS BLOQUES
                 }
         }
 }
@@ -240,7 +307,7 @@ void jugar(){
 /*  INICIO */
 int main (){
 if(inicializar() == 1) return 1;//VERIFICAR EL SISTEMA DE SONIDO , EN CASO DE ERROR CIERRA TODO
-    while(!fin){
+    while(!fin){//CICLO CONTINUO MIENTRAS NO TERMINE EL JUEGO
         armadoPantalla();//CARGAR LOS DATOS A PANTALLA
         if( key[KEY_ESC] )fin =true;//EN CASO DE PRESIONAR ESC , SE CIERRA EL JUEGO
         if( key[KEY_ENTER]&& juegoiniciado == false ){//EN CASO DE PRESIONAR ENTER , INICIA EL JUEGO
