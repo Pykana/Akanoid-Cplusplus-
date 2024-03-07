@@ -30,6 +30,11 @@ SAMPLE  *SonidoVidaPerdida;
 SAMPLE  *SonidoBoteBolaBase;
 SAMPLE  *SonidoGameOver;
 
+/* FUENTES */
+DATEFILE *datfile;
+FONT     *Akarnoid;
+FONT     *ARIAL;
+
 /* IMAGENES */
 BITMAP  *buffer;
 BITMAP  *logo;
@@ -218,7 +223,7 @@ void jugar(){
         while(!key[KEY_ESC]&& !fin){//CICLO CONTINUO MIENTRAS EL JUGADOR JUEGA
             inicializarNivel();//CREAR NIVEL
                 while(!nuevonivel && !key[KEY_ESC] && vidas>0){//VERIFICA SI EL USUARIO TERMINO EL NIVEL
-                        if(key[KEY_SPACE]&& enjuego=false){//VALIDACION DE TECLAS EN CASO EL JUGADOR ESTE JUGANDO
+                        if(key[KEY_SPACE]&& enjuego==false){//VALIDACION DE TECLAS EN CASO EL JUGADOR ESTE JUGANDO
                                 enjuego=true;//INICIA EL JUEGO
                         }
                     validacionBase();//VERIFICA EL ESTADO ACTUAL DE LA BASE QUE MANEJA DEL JUGADOR - LADRILLO
