@@ -109,6 +109,8 @@ int     pant2[63]={1,2,3,4,0,0,5,6,7,
                    3,4,5,6,7,1,2,0,0,
                    0,0,0,7,7,2,1,0,0};
 /* *** */
+int     mapa[63]; /*    PANTALLA AUXILIAR   */
+
 
 /* DECLARACIONES*/
 int inicializar ();
@@ -247,6 +249,7 @@ void RetomarJuego(){
     enjuego = false;//VUELVE AL ESTADO FALSE - EN ESPERA DEL JUGADOR
     nuevonivel= false;//DETIENE EL ARMADO
     armadoPantalla();//LLAMAR A ARMAR PANTALLA
+
 }
 
 /* VALIDACION DE LA BASE DEL JUGADOR */
@@ -256,7 +259,17 @@ void validacionBase(){
 
 /* CONFIGURACION Y MOSTRADO DE LADRILLOS */
 void muestraLadrillo(){
+    int x,y,col;
+    int ladn=0;
+    int lad;
 
+    int fila[7]={20,50,80,110,170,200};     //POSICIONES DE LADRILLOS
+
+    for(int i=0;i<63;i++){
+        if(mapa[i]<0 ){
+            lad=mapa[i];        //SI EL MAPA ES I ES MAYOR QUE 0, ENTONCES MUESTRAS EL LADRILLO I
+        }
+    }
 }
 
 /* CREACION DE LA BOLA */
