@@ -10,8 +10,8 @@
 #include <iostream>
 
 /* DEFINICION DE VENTANA*/
-#define ancho 1080
-#define alto 740
+#define ancho 1024
+#define alto 720
 
 /* DEFINICION DE VARIABLES GLOBALES*/
 #define velocidadInicial 3
@@ -84,13 +84,13 @@ int     higscore=0;
 int     baseX=255;
 int     bolaX=295;
 int     bolaY=650;
-int     mapa[63];
 int     bordeizquiera;
 int     bordederecha;
 int     colBola;
 int     filaBola;
 int     elemento;
 int     fila[]={20,50,80,110,140,170,200};
+
 
 /* PANTALLAS */
 int     pant1[63]={1,1,1,1,1,1,1,1,1,
@@ -126,6 +126,8 @@ void teclasSonido();
 void jugar();
 void ConfiguraNivel();
 void RetomarJuego();
+int cuentoLadrillo ();
+void  dibujaMuerte();
 
 /* FUNCIONES */
 /* DETECTAR TARJETA DE SONIDO, TECLADO E INICIALIZAR ALLEGRO */
@@ -198,7 +200,7 @@ void inicilizarPantalla(){
 void armadoPantalla (){
     //clear_to_color(buffer,makecol(0,0,0));//CARGAR COLOR DE BUFFER PERO USANDO LA FUNCIONA MAKECOL PARA LOS COLORES EN LUGAR HEX
     clear_to_color(buffer,0x000000);//CARGAR COLOR DE BUFFER CON EL COLOR EN DATOS HEXADECIMAL
-    draw_sprite(buffer,logo,615,5);//CARGAR SPRITE EN LA POSICION ESTABLECIDA       (X),  (Y)
+    draw_sprite(buffer,logo,610,5);//CARGAR SPRITE EN LA POSICION ESTABLECIDA       (X),  (Y)
     draw_sprite(buffer,panel,620,140);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
     /* TEXTO EN PANTALLA */
     textprintf_ex(panel,NTRS,170,23,makecol(0,0,0),makecol(0,0,0),"              ");//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR
@@ -209,15 +211,38 @@ void armadoPantalla (){
     textprintf_ex(panel,NTRS,170,150,makecol(255,0,0),makecol(0,0,0),"%d",vidas);//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR (LEVE)
     /* *** */
     draw_sprite(buffer,recuadro,5,10);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
-    draw_sprite(buffer,fondo1,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
+
+
+    switch(fondo){
+        case 1:     draw_sprite(buffer,fondo1,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
+            break;
+        case 2:     draw_sprite(buffer,fondo2,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
+            break;
+        case 3:     draw_sprite(buffer,fondo3,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
+            break;
+        case 4:     draw_sprite(buffer,fondo4,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
+            break;
+        case 5:     draw_sprite(buffer,fondo5,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
+            break;
+    }
+
     draw_sprite(buffer,base,baseX,660);//CARGAR SPRITE EN LA POSICION ESTABLECIDA   (X),  (Y)
+
+    if(!enjuego) bolaX =baseX+50;
+
     circlefill(buffer,bolaX,bolaY,10, makecol(124,250,16) );//CREAR CIRULO CON RELLENO EN BUFFER , CON DIMENSIONES (X), (Y), DIAMETRO, COLOR
+
+    muestraLadrillo();//ARMADO DE LADRILLOS
+    if(vidas ==0){
+        draw_sprite(buffer,gameover,150,300);
+    }
+
     blit(buffer,screen,0,0,0,0, ancho,alto);//MANDAR A PANTALLA LAS COSAS CARGADAS A BUFFER , SCREEN (PUEDE IR OTRO BUFFER), COORDENADAS (0,0,0,0), ANCHO Y ALTO DE VENTANA
 }
 
 /* ESTADO DE NUEVO JUEGO */
 void inicializarJuegoData(){
-        level==1;//EN JUEGO NUEVO INICIA EN NIVEL 1
+        level=1;//EN JUEGO NUEVO INICIA EN NIVEL 1
         fin=false;//RESETEA EL ESTADO FIN DE JUEGO A FALSE PARA NUEVA PARTIDA
 }
 
@@ -233,11 +258,17 @@ void inicializarNivel(){
 /* CONFIGURACION DEL NIVEL */
 void ConfiguraNivel(){
    for (int i=0;i<63;i++){//RECORRIDO DE CADA MAPA DE LADRILLOS
-          switch(level){//VERIFICA EN QUE NIVEL SE ENCUENTRA EL JUGADOR
-            case 1:  mapa[i]=pant1[i];//LEVEL 1 = CARGA PANTALLA1
-            case 2:  mapa[i]=pant2[i];//LEVEL 2 = CARGA PANTALLA2
-            default: mapa[i]=rand()%9;//LEVEL 3 EN ADELANTE PONES LADRILLOS ALEATORIOS
-          }
+          switch (level) {
+            case 1:
+                mapa[i] = pant1[i];//LEVEL 1 = CARGA PANTALLA1
+                break;
+            case 2:
+                mapa[i] = pant2[i];//LEVEL 2 = CARGA PANTALLA2
+                break;
+            default:
+                mapa[i] = rand() % 9;//LEVEL 3 EN ADELANTE PONES LADRILLOS ALEATORIOS
+        break;
+                        }
     }
 }
 
@@ -254,7 +285,12 @@ void RetomarJuego(){
 
 /* VALIDACION DE LA BASE DEL JUGADOR */
 void validacionBase(){
-
+    if(key[KEY_RIGHT]){
+        if(baseX < 476) baseX= baseX+velocidad; //DELIMITAR LIMITE DERECHO
+    }
+    if(key[KEY_LEFT]){
+        if(baseX > 11) baseX= baseX-velocidad; //DELIMITAR LIMITE IZQUIERDO
+    }
 }
 
 /* CONFIGURACION Y MOSTRADO DE LADRILLOS */
@@ -263,18 +299,106 @@ void muestraLadrillo(){
     int ladn=0;
     int lad;
 
-    int fila[7]={20,50,80,110,170,200};     //POSICIONES DE LADRILLOS
+    int fila[7]={20,50,80,110,140,170,200};     //POSICIONES DE LADRILLOS
 
     for(int i=0;i<63;i++){
-        if(mapa[i]<0 ){
-            lad=mapa[i];        //SI EL MAPA ES I ES MAYOR QUE 0, ENTONCES MUESTRAS EL LADRILLO I
+        if(mapa[i]>0 ){
+            lad =   mapa[i];        //SI EL MAPA ES I ES MAYOR QUE 0, ENTONCES MUESTRAS EL LADRILLO I
+
+            y   =   fila[int (i/9)];
+
+            col =   i-((int)(i/9) *9)+1;
+
+            x   =   13+((col-1)*65);
+
+            switch(lad){
+                case 1: draw_sprite(buffer, lad1,x,y);
+                break;
+                case 2: draw_sprite(buffer, lad2,x,y);
+                break;
+                case 3: draw_sprite(buffer, lad3,x,y);
+                break;
+                case 4: draw_sprite(buffer, lad4,x,y);
+                break;
+                case 5: draw_sprite(buffer, lad5,x,y);
+                break;
+                case 6: draw_sprite(buffer, lad6,x,y);
+                break;
+                case 7: draw_sprite(buffer, lad7,x,y);
+                break;
+                case 8: draw_sprite(buffer, ladd,x,y);
+                break;
+            }
         }
     }
 }
 
+void  dibujaMuerte(){
+
+}
+
+
 /* CREACION DE LA BOLA */
 void nuevaBola(){
+    bordederecha=baseX+100;
+    bordeizquiera= baseX+20;
+    if(bolaY <255){
+        filaBola=((int)(((bolaY-20)/30))+1);
+        colBola=((int)(((bolaX-13)/64))+1);
+        elemento = (((filaBola-1)*9)+colBola)-1;
 
+    if(mapa[elemento] !=0 ){
+        if(dirY ==1){
+            dirY=1;
+        }else{
+            dirY=-1;
+            }
+        }
+
+    if(mapa[elemento] !=8 ){
+            if(efectos) play_sample(SonidoLadrillo,200,150,1000,0);
+            mapa[elemento]=0;
+            score=score+10;
+            muestraLadrillo();
+        }else{
+            if(efectos) play_sample(SonidoReboteBola,200,150,1000,0);
+        }
+
+    }else{
+        if(bolaY>650 && dirY==1){
+            if(bolaX >=baseX && bolaX <=baseX+120){
+                if(efectos) play_sample(SonidoBoteBolaBase,200,150,1000,0);
+
+                if(bolaX<=bordeizquiera)dirX=-1;
+                if(bolaX>=bordederecha) dirX=1;
+
+                dirY=-1;
+                return;
+            }else{
+            if(efectos) play_sample(SonidoVidaPerdida,200,150,1000,0);
+            vidas--;
+            dibujaMuerte();
+            if(vidas>0){
+                RetomarJuego();
+                return;
+            }
+            return;
+            }
+        }
+    }
+
+    if(bolaX>580) dirX=-1;
+    if(bolaX<15) dirX=1;
+    if(bolaY<15) dirY=1;
+    if(bolaX>580 || bolaX<15 || bolaY<15) {
+        if(efectos) play_sample(SonidoReboteBola,200,150,1000,0);
+    }
+
+    if(dirX==1)bolaX=bolaX+velocidad;
+    if(dirX==-1)bolaX=bolaX-velocidad;
+
+    if(dirY==1)bolaX=bolaX+velocidad;
+    if(dirY==-1)bolaX=bolaX-velocidad;
 }
 
 /* VALIDACION DE LA TECLAS DE SONIDO */
@@ -290,20 +414,31 @@ void teclasSonido(){
   }
   if(efectos){//VERIFICA EL ESTADO DE MUSICA
       if(key[KEY_TAB]){//SI PRESIONA TAB
-        musica=true;//VALOR EFECTOS A TRUE
+        musica=false;//VALOR EFECTOS A FALSE
     }else{//SI NO
         musica=true;//VALOR EFECTOS A TRUE
     }
   }
 }
 
+int cuentoLadrillo (){
+    for (int i=0;i<63;i++){
+        if(mapa[i] !=8 && mapa[i] >0) return 1;
+    }
+    return 0;
+}
+
+
 /*  INTERACCION CON EL JUEGO  */
 void jugar(){
         inicializarJuegoData();//PONER LOS VALORES DEFAULT
         while(!key[KEY_ESC]&& !fin){//CICLO CONTINUO MIENTRAS EL JUGADOR JUEGA
+            midi_pause();
             inicializarNivel();//CREAR NIVEL
                 while(!nuevonivel && !key[KEY_ESC] && vidas>0){//VERIFICA SI EL USUARIO TERMINO EL NIVEL
                         if(key[KEY_SPACE]&& enjuego==false){//VALIDACION DE TECLAS EN CASO EL JUGADOR ESTE JUGANDO
+                                if(efectos) stop_sample(SonidoInicioNivel);
+                                if(musica) play_midi(MusicaJuego,NULL);
                                 enjuego=true;//INICIA EL JUEGO
                         }
                     validacionBase();//VERIFICA EL ESTADO ACTUAL DE LA BASE QUE MANEJA DEL JUGADOR - LADRILLO
@@ -311,9 +446,23 @@ void jugar(){
                         muestraLadrillo();//VERIFICA EL ESTADO ACTUAL DE LOS BLOQUES CON LOS QUE INTERACTUA EL JGADOR
                         nuevaBola();//CREA UNA BOLA EN LA POSICION INICIAL
                     }
+                    if(key[KEY_0]){
+                        for(int i=0;i<63;i++){
+                            mapa[i]=0;
+                        }
+                    }
+
+                    if(cuentoLadrillo()==0){
+                            level++;
+                            nuevonivel =true;
+                            fondo++;
+                            if(fondo==6) fondo =1;
+                            inicializarNivel();
+                    }
                     teclasSonido();//VERIFICA SI EL JUGADOR PRESIONO LA TECLA ESPECIFICA PARA MANEJAR EL SONIDO
                     armadoPantalla();//ARMADO DE PANTALLA EN TIEMPO REAL -- CUANDO EL JUGADOR INTERACTUE CON LOS BLOQUES
                 }
+                if(vidas ==0) fin = true;
         }
 }
 
@@ -323,7 +472,7 @@ if(inicializar() == 1) return 1;//VERIFICAR EL SISTEMA DE SONIDO , EN CASO DE ER
     while(!fin){//CICLO CONTINUO MIENTRAS NO TERMINE EL JUEGO
         armadoPantalla();//CARGAR LOS DATOS A PANTALLA
         if( key[KEY_ESC] )fin =true;//EN CASO DE PRESIONAR ESC , SE CIERRA EL JUEGO
-        if( key[KEY_ENTER]&& juegoiniciado == false ){//EN CASO DE PRESIONAR ENTER , INICIA EL JUEGO
+        if( key[KEY_ENTER]&& !juegoiniciado ){//EN CASO DE PRESIONAR ENTER , INICIA EL JUEGO
            jugar();//LLAMAR A FUNCION PARA INICIAR JUEGO
         }
     }
