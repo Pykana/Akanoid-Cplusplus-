@@ -1,13 +1,14 @@
 /* LIBRERIAS */
 #include <allegro.h>
+#include <string>
 #include <conio.h>
+#include <sstream>
+#include <iostream>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <winalleg.h>
 #include <fstream>
-#include <string>
-#include <sstream>
-#include <iostream>
 
 /* DEFINICION DE VENTANA*/
 #define ancho 1024
@@ -132,26 +133,33 @@ void  dibujaMuerte();
 /* FUNCIONES */
 /* DETECTAR TARJETA DE SONIDO, TECLADO E INICIALIZAR ALLEGRO */
 int inicializar (){
+
     allegro_init();//INICIALIZAR ALLEGRO
     install_keyboard();//INICIALIZAR TECLADO
+
     set_window_title("Arkanoid -By Pykana-");//TITULO DE LA VENTANA DE JUEGO
+
     if(install_sound(DIGI_AUTODETECT,MIDI_AUTODETECT,NULL)!=0 ){//DETECTAR TARJETA SONIDO
         allegro_message("Error !  Inicializando sistema de sonido \n\n\n" , allegro_error);//MENSAJE EN CASO DE ERROR
         return 1;//RETORNA 1 EN CASO DE ERRORES
     }
+
+    /* **** */
+    inicilizarPantalla();//INICIA LA CARGA DE IMAGENES
+    inicilizarSonidos();//INICIA LA CARGA DE SONIDOS
+
     /* CARGA DE FUENTES */
     datafile=load_datafile("font/Fuentes.dat");//CARGA DE FUENTES DESDE EL ARCHIVO GENERADO POR TTF2PCX Y GRABBER
     Arkarnoid=(FONT*)datafile[0].dat;//CARGA LA FUENTE DE LA POSICION 0 Y LO ASIGNA A ARKANOID
     NTRS=(FONT*)datafile[1].dat;//CARGA LA FUENTE DE LA POSICION 1 Y LO ASIGNA A NTRS
-    /* **** */
-    inicilizarPantalla();//INICIA LA CARGA DE IMAGENES
-    inicilizarSonidos();//INICIA LA CARGA DE SONIDOS
+
+    play_midi(MusicaInicio,0);
     return 0;//RETORNA 0 EN CASO DE NO TENER ERRORES
 }
 
 /* CARGAR SONIDOS A MEMORIA */
 void inicilizarSonidos(){
-    set_volume(230,209);//INICIALIZAR VOLUMEN
+    set_volume(230,200);//INICIALIZAR VOLUMEN
     MusicaInicio=load_midi("bgm/ark.mid");//CARGAR ARCHIVO MIDI DE LA RUTA ESTABLECIDA
     MusicaJuego=load_midi("bgm/Arkanoid.mid");//CARGAR ARCHIVO MIDI DE LA RUTA ESTABLECIDA
     SonidoInicioJuegoSelect=load_wav("bgm/InicioJuego.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
@@ -163,6 +171,7 @@ void inicilizarSonidos(){
     SonidoGameOver=load_wav("bgm/SonidoGameOver.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
     SonidoRevivir=load_wav("bgm/revivir.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
     SonidoReboteBolaPared=load_wav("bgm/rebotaParedes.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoBoteBolaBase=load_wav("bgm/reboteBase.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
 }
 
 /* CARGA ELEMENTOS DE MEMORIA */
@@ -340,53 +349,51 @@ void  dibujaMuerte(){
 
 /* CREACION DE LA BOLA */
 void nuevaBola(){
-    bordederecha=baseX+100;
     bordeizquiera= baseX+20;
+     bordederecha=baseX+100;
     if(bolaY <255){
         filaBola=((int)(((bolaY-20)/30))+1);
         colBola=((int)(((bolaX-13)/64))+1);
         elemento = (((filaBola-1)*9)+colBola)-1;
 
-    if(mapa[elemento] !=0 ){
-        if(dirY ==1){
-            dirY=1;
-        }else{
-            dirY=-1;
+         if(mapa[elemento] !=0 ){
+               if(dirY ==1){
+                     dirY=-1;
+                }else{
+                    dirY=1;
+                }
+                if(mapa[elemento] !=8 ){
+
+                    if(efectos) play_sample(SonidoLadrillo,200,150,1000,0);
+                    mapa[elemento]=0;
+                    score=score+10;
+                    muestraLadrillo();
+            }else{
+                if(efectos) play_sample(SonidoReboteBola,200,150,1000,0);
             }
-        }
-
-    if(mapa[elemento] !=8 ){
-            if(efectos) play_sample(SonidoLadrillo,200,150,1000,0);
-            mapa[elemento]=0;
-            score=score+10;
-            muestraLadrillo();
-        }else{
-            if(efectos) play_sample(SonidoReboteBola,200,150,1000,0);
-        }
-
+         }
     }else{
-        if(bolaY>650 && dirY==1){
+    if(bolaY>650 && dirY==1){
             if(bolaX >=baseX && bolaX <=baseX+120){
-                if(efectos) play_sample(SonidoBoteBolaBase,200,150,1000,0);
 
+                if(efectos) play_sample(SonidoBoteBolaBase,200,150,1000,0);
                 if(bolaX<=bordeizquiera)dirX=-1;
                 if(bolaX>=bordederecha) dirX=1;
 
                 dirY=-1;
                 return;
             }else{
+
             if(efectos) play_sample(SonidoVidaPerdida,200,150,1000,0);
             vidas--;
             dibujaMuerte();
-            if(vidas>0){
-                RetomarJuego();
-                return;
-            }
+            if(vidas>0)  RetomarJuego();
             return;
             }
-        }
-    }
 
+
+          }
+    }
     if(bolaX>580) dirX=-1;
     if(bolaX<15) dirX=1;
     if(bolaY<15) dirY=1;
@@ -397,8 +404,10 @@ void nuevaBola(){
     if(dirX==1)bolaX=bolaX+velocidad;
     if(dirX==-1)bolaX=bolaX-velocidad;
 
-    if(dirY==1)bolaX=bolaX+velocidad;
-    if(dirY==-1)bolaX=bolaX-velocidad;
+    if(dirY==1)bolaY=bolaY+velocidad;
+    if(dirY==-1)bolaY=bolaY-velocidad;
+
+    armadoPantalla();
 }
 
 /* VALIDACION DE LA TECLAS DE SONIDO */
@@ -438,18 +447,23 @@ void jugar(){
                 while(!nuevonivel && !key[KEY_ESC] && vidas>0){//VERIFICA SI EL USUARIO TERMINO EL NIVEL
                         if(key[KEY_SPACE]&& enjuego==false){//VALIDACION DE TECLAS EN CASO EL JUGADOR ESTE JUGANDO
                                 if(efectos) stop_sample(SonidoInicioNivel);
-                                if(musica) play_midi(MusicaJuego,NULL);
+                                if(musica) play_midi(MusicaJuego,1);
                                 enjuego=true;//INICIA EL JUEGO
                         }
                     validacionBase();//VERIFICA EL ESTADO ACTUAL DE LA BASE QUE MANEJA DEL JUGADOR - LADRILLO
+
                     if(enjuego){
+
                         muestraLadrillo();//VERIFICA EL ESTADO ACTUAL DE LOS BLOQUES CON LOS QUE INTERACTUA EL JGADOR
                         nuevaBola();//CREA UNA BOLA EN LA POSICION INICIAL
+
                     }
                     if(key[KEY_0]){
+
                         for(int i=0;i<63;i++){
                             mapa[i]=0;
                         }
+
                     }
 
                     if(cuentoLadrillo()==0){
