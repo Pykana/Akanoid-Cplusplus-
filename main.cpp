@@ -440,6 +440,7 @@ int cuentoLadrillo (){
 
 /*  INTERACCION CON EL JUEGO  */
 void jugar(){
+
         inicializarJuegoData();//PONER LOS VALORES DEFAULT
         while(!key[KEY_ESC]&& !fin){//CICLO CONTINUO MIENTRAS EL JUGADOR JUEGA
             midi_pause();
