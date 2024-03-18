@@ -445,7 +445,16 @@ void muestraLadrillo(){
 }
 
 void  dibujaMuerte(){
+    muerte = true;
+    for(secuenciamuerte =1;secuenciamuerte<5;secuenciamuerte++){
 
+        armadoPantalla();
+        Sleep(200);
+
+    }
+
+    muerte = false;
+    armadoPantalla();
 }
 
 
@@ -530,33 +539,32 @@ void nuevaBola(){
 
 /* VALIDACION DE LA TECLAS DE SONIDO */
 void teclasSonido(){
-
-  if(musica){//VERIFICA EL ESTADO DE MUSICA
-
       if(key[KEY_DEL]){//SI PRESIONA DEL
 
-        musica =false;//VALOR MUSICA A FALSE
-        midi_pause();//PAUSA MUSICA
+        if(musica){//VERIFICA EL ESTADO DE MUSICA
 
-    }else{//SI NO
+            musica =false;//VALOR MUSICA A FALSE
+            midi_pause();//PAUSA MUSICA
 
-        midi_resume();//RESUME LA MUSICA
-        musica=true;//VALOR MUSICA A TRUE
+        }else{//SI NO
 
+            midi_resume();//RESUME LA MUSICA
+            musica=true;//VALOR MUSICA A TRUE
+
+        }
     }
-  }
-  if(efectos){//VERIFICA EL ESTADO DE MUSICA
+    if(key[KEY_TAB]){//SI PRESIONA TAB
 
-      if(key[KEY_TAB]){//SI PRESIONA TAB
+        if(efectos){//VERIFICA EL ESTADO DE MUSICA
 
         efectos=false;//VALOR EFECTOS A FALSE
 
-    }else{//SI NO
+        }else{//SI NO
 
-        efectos=true;//VALOR EFECTOS A TRUE
+            efectos=true;//VALOR EFECTOS A TRUE
 
+        }
     }
-  }
 }
 
 int cuentoLadrillo (){
