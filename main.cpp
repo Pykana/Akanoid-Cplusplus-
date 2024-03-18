@@ -139,17 +139,26 @@ void destruyo_componentes();
 /*  INICIO */
 int main (){
     try{
+
         if(inicializar() == 1) return 1;//VERIFICAR EL SISTEMA DE SONIDO , EN CASO DE ERROR CIERRA TODO
+
         while(!fin){//CICLO CONTINUO MIENTRAS NO TERMINE EL JUEGO
+
                 armadoPantalla();//CARGAR LOS DATOS A PANTALLA
+
                 if( key[KEY_ESC] )fin =true;//EN CASO DE PRESIONAR ESC , SE CIERRA EL JUEGO
                 if( key[KEY_ENTER]&& !juegoiniciado ){//EN CASO DE PRESIONAR ENTER , INICIA EL JUEGO
+
                    jugar();//LLAMAR A FUNCION PARA INICIAR JUEGO
+
                 }
         }
     }catch (exception& e){
+
         cout << e.what() << '\n';
+
     }
+
     return 0;
 }
 END_OF_MAIN();
@@ -596,18 +605,24 @@ void jugar(){
                     if(key[KEY_0]){
 
                         for(int i=0;i<63;i++){
+
                             mapa[i]=0;
+
                         }
 
                     }
 
                     if(cuentoLadrillo()==0){
+
                             level++;
                             nuevonivel =true;
                             fondo++;
+
                             if(fondo==6){
+
                               fondo =1;
                             }
+
                             inicializarNivel();
                     }
 
@@ -620,7 +635,9 @@ void jugar(){
                 }
             }catch (exception& e)
             {
+
             cout << e.what() << endl;
+
             }
 }
 
