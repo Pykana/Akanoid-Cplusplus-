@@ -22,7 +22,7 @@ MIDI    *MusicaInicio;
 MIDI    *MusicaJuego;
 SAMPLE  *SonidoInicioJuegoSelect;
 SAMPLE  *SonidoInicioNivel;
-SAMPLE  *SonidoLadrillo;
+SAMPLE  *SonidoLadrilloRoto;
 SAMPLE  *SonidoReboteBola;
 SAMPLE  *SonidoRevivir;
 SAMPLE  *SonidoVidaExtra;
@@ -30,6 +30,7 @@ SAMPLE  *SonidoReboteBolaPared;
 SAMPLE  *SonidoVidaPerdida;
 SAMPLE  *SonidoBoteBolaBase;
 SAMPLE  *SonidoGameOver;
+
 
 /* FUENTES */
 DATAFILE *datafile;
@@ -47,6 +48,7 @@ BITMAP  *fondo3;
 BITMAP  *fondo4;
 BITMAP  *fondo5;
 BITMAP  *gameover;
+BITMAP  *pelota;
 BITMAP  *lad1;
 BITMAP  *lad2;
 BITMAP  *lad3;
@@ -73,6 +75,7 @@ int     dirX=1;
 int     velocidad=3;
 int     fondo =1;
 bool    juegoiniciado=false;
+bool    finJuego=false;
 bool    fin =false;
 bool    nuevonivel=false;
 bool    enjuego=false;
@@ -90,6 +93,7 @@ int     bordederecha;
 int     colBola;
 int     filaBola;
 int     elemento;
+
 int     fila[]={20,50,80,110,140,170,200};
 
 
@@ -129,6 +133,26 @@ void ConfiguraNivel();
 void RetomarJuego();
 int cuentoLadrillo ();
 void  dibujaMuerte();
+void destruyo_componentes();
+
+
+/*  INICIO */
+int main (){
+    try{
+        if(inicializar() == 1) return 1;//VERIFICAR EL SISTEMA DE SONIDO , EN CASO DE ERROR CIERRA TODO
+        while(!fin){//CICLO CONTINUO MIENTRAS NO TERMINE EL JUEGO
+                armadoPantalla();//CARGAR LOS DATOS A PANTALLA
+                if( key[KEY_ESC] )fin =true;//EN CASO DE PRESIONAR ESC , SE CIERRA EL JUEGO
+                if( key[KEY_ENTER]&& !juegoiniciado ){//EN CASO DE PRESIONAR ENTER , INICIA EL JUEGO
+                   jugar();//LLAMAR A FUNCION PARA INICIAR JUEGO
+                }
+        }
+    }catch (exception& e){
+        cout << e.what() << '\n';
+    }
+    return 0;
+}
+END_OF_MAIN();
 
 /* FUNCIONES */
 /* DETECTAR TARJETA DE SONIDO, TECLADO E INICIALIZAR ALLEGRO */
@@ -140,8 +164,10 @@ int inicializar (){
     set_window_title("Arkanoid -By Pykana-");//TITULO DE LA VENTANA DE JUEGO
 
     if(install_sound(DIGI_AUTODETECT,MIDI_AUTODETECT,NULL)!=0 ){//DETECTAR TARJETA SONIDO
+
         allegro_message("Error !  Inicializando sistema de sonido \n\n\n" , allegro_error);//MENSAJE EN CASO DE ERROR
         return 1;//RETORNA 1 EN CASO DE ERRORES
+
     }
 
     /* **** */
@@ -159,36 +185,51 @@ int inicializar (){
 
 /* CARGAR SONIDOS A MEMORIA */
 void inicilizarSonidos(){
+
     set_volume(230,200);//INICIALIZAR VOLUMEN
-    MusicaInicio=load_midi("bgm/ark.mid");//CARGAR ARCHIVO MIDI DE LA RUTA ESTABLECIDA
-    MusicaJuego=load_midi("bgm/Arkanoid.mid");//CARGAR ARCHIVO MIDI DE LA RUTA ESTABLECIDA
-    SonidoInicioJuegoSelect=load_wav("bgm/InicioJuego.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
-    SonidoInicioNivel=load_wav("bgm/inicioNivel.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
-    SonidoLadrillo=load_wav("bgm/ladrilloRoto.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
-    SonidoReboteBola=load_wav("bgm/rebotePelota.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
-    SonidoVidaExtra=load_wav("bgm/vidaExtra.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
-    SonidoVidaPerdida=load_wav("bgm/fallo.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
-    SonidoGameOver=load_wav("bgm/SonidoGameOver.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
-    SonidoRevivir=load_wav("bgm/revivir.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
-    SonidoReboteBolaPared=load_wav("bgm/rebotaParedes.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
-    SonidoBoteBolaBase=load_wav("bgm/reboteBase.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+
+    MusicaInicio                =load_midi("bgm/ark.mid");//CARGAR ARCHIVO MIDI DE LA RUTA ESTABLECIDA
+    MusicaJuego                 =load_midi("bgm/Arkanoid.mid");//CARGAR ARCHIVO MIDI DE LA RUTA ESTABLECIDA
+    SonidoInicioJuegoSelect     =load_wav("bgm/InicioJuego.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoInicioNivel           =load_wav("bgm/inicioNivel.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoLadrilloRoto          =load_wav("bgm/ladrilloRoto.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoReboteBola            =load_wav("bgm/rebotePelota.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoVidaExtra             =load_wav("bgm/vidaExtra.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoVidaPerdida           =load_wav("bgm/fallo.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoGameOver              =load_wav("bgm/SonidoGameOver.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoRevivir               =load_wav("bgm/revivir.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoReboteBolaPared       =load_wav("bgm/rebotaParedes.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+    SonidoBoteBolaBase          =load_wav("bgm/reboteBase.wav");//CARGAR ARCHIVO WAV DE LA RUTA ESTABLECIDA
+
+}
+
+void destruyo_componentes()
+{
+
 }
 
 /* CARGA ELEMENTOS DE MEMORIA */
 void inicilizarPantalla(){
+
     set_color_depth(32);//PROFUNDIDAD DE COLOR DE 32 BITS
+
     set_gfx_mode(GFX_AUTODETECT,ancho,alto,0,0);//ALLEGRO - AUTODETECTAR EL CONTROLADOR DE GRAFICOS Y DEFINIR LAS DIMENSIONES DE LA PANTALLA  (X,Y,0,0)  LOS OTROS DOS 0 SE USAN PARA SCROLLING , EN CASO DE QUERER AÑADIR PIXELES OCULTOS
+
     buffer=create_bitmap(ancho,alto);//CREACION DE BUFFER CON LAS DIMENSIONES ESTABLECIDAS
+
     logo=load_bitmap("img/logo.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
     panel=load_bitmap("img/panel.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
     recuadro=load_bitmap("img/recuadro.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
     gameover=load_bitmap("img/gameover.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+    pelota=load_bitmap("img/pelota.bmp",NULL);
+
     /*FONDOS*/
     fondo1=load_bitmap("img/fondo1.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
       fondo2=load_bitmap("img/fondo2.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
         fondo3=load_bitmap("img/fondo3.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
           fondo4=load_bitmap("img/fondo4.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
             fondo5=load_bitmap("img/fondo5.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+
     /*LADRILLOS*/
     lad1=load_bitmap("img/ladrillo1.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
      lad2=load_bitmap("img/ladrillo2.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
@@ -198,19 +239,25 @@ void inicilizarPantalla(){
          lad6=load_bitmap("img/ladrillo6.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
           lad7=load_bitmap("img/ladrillo7.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
            ladd=load_bitmap("img/ladrilloduro.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+
     /*RECTANGULO BASE - JUGADOR*/
     base=load_bitmap("img/base.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
      base2=load_bitmap("img/base2.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
       base3=load_bitmap("img/base3.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
        base4=load_bitmap("img/base4.bmp", NULL);//CARGAR BITMAP DESDE LA RUTA ESTABLECIDA
+
 }
 
 /* MOSTRADO DE ELEMENTOS DE PANTALLA */
 void armadoPantalla (){
+     try
+        {
+
     //clear_to_color(buffer,makecol(0,0,0));//CARGAR COLOR DE BUFFER PERO USANDO LA FUNCIONA MAKECOL PARA LOS COLORES EN LUGAR HEX
     clear_to_color(buffer,0x000000);//CARGAR COLOR DE BUFFER CON EL COLOR EN DATOS HEXADECIMAL
     draw_sprite(buffer,logo,610,5);//CARGAR SPRITE EN LA POSICION ESTABLECIDA       (X),  (Y)
     draw_sprite(buffer,panel,620,140);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
+
     /* TEXTO EN PANTALLA */
     textprintf_ex(panel,NTRS,170,23,makecol(0,0,0),makecol(0,0,0),"              ");//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR
     textprintf_ex(panel,NTRS,170,23,makecol(255,0,0),makecol(0,0,0),"%d",level);//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR (LEVE)
@@ -218,11 +265,15 @@ void armadoPantalla (){
     textprintf_ex(panel,NTRS,200,85,makecol(255,0,0),makecol(0,0,0),"%d",score);//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR (LEVE)
     textprintf_ex(panel,NTRS,170,150,makecol(0,0,0),makecol(0,0,0),"              ");//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR
     textprintf_ex(panel,NTRS,170,150,makecol(255,0,0),makecol(0,0,0),"%d",vidas);//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR (LEVE)
+
+  //  textprintf_ex(buffer, NTRS, 740, 140, makecol(255,255,255),makecol(0,0,0), "Highscore : %i", highScore);
+
     /* *** */
     draw_sprite(buffer,recuadro,5,10);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
 
 
     switch(fondo){
+
         case 1:     draw_sprite(buffer,fondo1,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
             break;
         case 2:     draw_sprite(buffer,fondo2,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
@@ -233,41 +284,76 @@ void armadoPantalla (){
             break;
         case 5:     draw_sprite(buffer,fondo5,11,16);//CARGAR SPRITE EN LA POSICION ESTABLECIDA     (X),  (Y)
             break;
+
+    }
+       if (!muerte) {
+
+           draw_sprite(buffer,base,baseX,660);//CARGAR SPRITE EN LA POSICION ESTABLECIDA   (X),  (Y)
+
+       }else{
+
+            switch(secuenciamuerte)
+           {
+           case 1: draw_sprite(buffer,base2,baseX,655);
+                   break;
+           case 2: draw_sprite(buffer,base3,baseX,650);
+                   break;
+           case 3: draw_sprite(buffer,base4,baseX,640);
+                   break;
+           }
+
+       }
+
+    if(enjuego){
+
+            circlefill(buffer, bolaX,bolaY, 10, makecol(124,250,16));
+
+    } else{
+            bolaX =baseX+50;
+            circlefill(buffer,bolaX,bolaY,10, makecol(124,250,16) );//CREAR CIRULO CON RELLENO EN BUFFER , CON DIMENSIONES (X), (Y), DIAMETRO, COLOR
     }
 
-    draw_sprite(buffer,base,baseX,660);//CARGAR SPRITE EN LA POSICION ESTABLECIDA   (X),  (Y)
+        muestraLadrillo();//ARMADO DE LADRILLOS
 
-    if(!enjuego) bolaX =baseX+50;
+        if(vidas ==0)    draw_sprite(buffer,gameover,150,300);
 
-    circlefill(buffer,bolaX,bolaY,10, makecol(124,250,16) );//CREAR CIRULO CON RELLENO EN BUFFER , CON DIMENSIONES (X), (Y), DIAMETRO, COLOR
+        blit(buffer,screen,0,0,0,0, ancho,alto);//MANDAR A PANTALLA LAS COSAS CARGADAS A BUFFER , SCREEN (PUEDE IR OTRO BUFFER), COORDENADAS (0,0,0,0), ANCHO Y ALTO DE VENTANA
 
-    muestraLadrillo();//ARMADO DE LADRILLOS
-    if(vidas ==0){
-        draw_sprite(buffer,gameover,150,300);
-    }
+          }catch (exception& e){
 
-    blit(buffer,screen,0,0,0,0, ancho,alto);//MANDAR A PANTALLA LAS COSAS CARGADAS A BUFFER , SCREEN (PUEDE IR OTRO BUFFER), COORDENADAS (0,0,0,0), ANCHO Y ALTO DE VENTANA
-}
+                cout << e.what() << endl;
+
+            }
+        }
 
 /* ESTADO DE NUEVO JUEGO */
 void inicializarJuegoData(){
+
         level=1;//EN JUEGO NUEVO INICIA EN NIVEL 1
-        fin=false;//RESETEA EL ESTADO FIN DE JUEGO A FALSE PARA NUEVA PARTIDA
+        finJuego=false;//RESETEA EL ESTADO FIN DE JUEGO A FALSE PARA NUEVA PARTIDA
+
 }
 
 /* CREACION DE ESCENARIO PARA JUEGO */
 void inicializarNivel(){
+
     ConfiguraNivel();//ENTRA A LA CONFIGURACION DEL NIVEL - PANTALLA POR NIVEL
     RetomarJuego();//ENTRA A RETOMAR JUEGO - CAMBIO PARAMETROS A SU ESTADO BASE
+
     if(efectos){//VERIFICA EL ESTADO ACTUAL DE EFECTOS
+
         play_sample(SonidoInicioNivel,200,150,1000,0);//ARCHIVO SAMPLE, VOLUMEN, PAN, FRECUENCIA, LOOP
+
     }
+
 }
 
 /* CONFIGURACION DEL NIVEL */
 void ConfiguraNivel(){
+
    for (int i=0;i<63;i++){//RECORRIDO DE CADA MAPA DE LADRILLOS
           switch (level) {
+
             case 1:
                 mapa[i] = pant1[i];//LEVEL 1 = CARGA PANTALLA1
                 break;
@@ -276,48 +362,55 @@ void ConfiguraNivel(){
                 break;
             default:
                 mapa[i] = rand() % 9;//LEVEL 3 EN ADELANTE PONES LADRILLOS ALEATORIOS
-        break;
+                break;
                         }
     }
+
 }
 
 /* CONFIGURACION Y VALIDACION DEL ESTADO DEL JUEGO */
 void RetomarJuego(){
+
     baseX=255;//CENTRA LADRIO BASE - JUGADOR
-    bolaX=285;//CENTRA BOLA POSICION X
+    bolaX=295;//CENTRA BOLA POSICION X
     bolaY=650;//CENTRA BOLA POSICION Y
     enjuego = false;//VUELVE AL ESTADO FALSE - EN ESPERA DEL JUGADOR
     nuevonivel= false;//DETIENE EL ARMADO
     armadoPantalla();//LLAMAR A ARMAR PANTALLA
+    velocidad=3+((int)level/5);
 
 }
 
 /* VALIDACION DE LA BASE DEL JUGADOR */
 void validacionBase(){
+
     if(key[KEY_RIGHT]){
+
         if(baseX < 476) baseX= baseX+velocidad; //DELIMITAR LIMITE DERECHO
+
     }
     if(key[KEY_LEFT]){
+
         if(baseX > 11) baseX= baseX-velocidad; //DELIMITAR LIMITE IZQUIERDO
     }
+
 }
 
 /* CONFIGURACION Y MOSTRADO DE LADRILLOS */
 void muestraLadrillo(){
+
     int x,y,col;
     int ladn=0;
     int lad;
-
     int fila[7]={20,50,80,110,140,170,200};     //POSICIONES DE LADRILLOS
 
     for(int i=0;i<63;i++){
+
         if(mapa[i]>0 ){
+
             lad =   mapa[i];        //SI EL MAPA ES I ES MAYOR QUE 0, ENTONCES MUESTRAS EL LADRILLO I
-
             y   =   fila[int (i/9)];
-
-            col =   i-((int)(i/9) *9)+1;
-
+            col =   i-(((int)(i/9))*9)+1;
             x   =   13+((col-1)*65);
 
             switch(lad){
@@ -349,31 +442,44 @@ void  dibujaMuerte(){
 
 /* CREACION DE LA BOLA */
 void nuevaBola(){
-    bordeizquiera= baseX+20;
+
+     bordeizquiera= baseX+20;
      bordederecha=baseX+100;
+
     if(bolaY <255){
+
         filaBola=((int)(((bolaY-20)/30))+1);
-        colBola=((int)(((bolaX-13)/64))+1);
+        colBola=((int)(bolaX-13)/64)+1;
         elemento = (((filaBola-1)*9)+colBola)-1;
 
          if(mapa[elemento] !=0 ){
+
                if(dirY ==1){
+
                      dirY=-1;
+
                 }else{
+
                     dirY=1;
+
                 }
                 if(mapa[elemento] !=8 ){
 
-                    if(efectos) play_sample(SonidoLadrillo,200,150,1000,0);
+                    if(efectos) play_sample(SonidoLadrilloRoto,200,150,1000,0);
                     mapa[elemento]=0;
                     score=score+10;
                     muestraLadrillo();
+
             }else{
+
                 if(efectos) play_sample(SonidoReboteBola,200,150,1000,0);
+
             }
          }
     }else{
+
     if(bolaY>650 && dirY==1){
+
             if(bolaX >=baseX && bolaX <=baseX+120){
 
                 if(efectos) play_sample(SonidoBoteBolaBase,200,150,1000,0);
@@ -382,6 +488,7 @@ void nuevaBola(){
 
                 dirY=-1;
                 return;
+
             }else{
 
             if(efectos) play_sample(SonidoVidaPerdida,200,150,1000,0);
@@ -389,16 +496,18 @@ void nuevaBola(){
             dibujaMuerte();
             if(vidas>0)  RetomarJuego();
             return;
+
             }
-
-
           }
     }
+
     if(bolaX>580) dirX=-1;
     if(bolaX<15) dirX=1;
     if(bolaY<15) dirY=1;
     if(bolaX>580 || bolaX<15 || bolaY<15) {
+
         if(efectos) play_sample(SonidoReboteBola,200,150,1000,0);
+
     }
 
     if(dirX==1)bolaX=bolaX+velocidad;
@@ -412,45 +521,69 @@ void nuevaBola(){
 
 /* VALIDACION DE LA TECLAS DE SONIDO */
 void teclasSonido(){
+
   if(musica){//VERIFICA EL ESTADO DE MUSICA
+
       if(key[KEY_DEL]){//SI PRESIONA DEL
+
         musica =false;//VALOR MUSICA A FALSE
         midi_pause();//PAUSA MUSICA
+
     }else{//SI NO
-        musica=true;//VALOR MUSICA A TRUE
+
         midi_resume();//RESUME LA MUSICA
+        musica=true;//VALOR MUSICA A TRUE
+
     }
   }
   if(efectos){//VERIFICA EL ESTADO DE MUSICA
+
       if(key[KEY_TAB]){//SI PRESIONA TAB
-        musica=false;//VALOR EFECTOS A FALSE
+
+        efectos=false;//VALOR EFECTOS A FALSE
+
     }else{//SI NO
-        musica=true;//VALOR EFECTOS A TRUE
+
+        efectos=true;//VALOR EFECTOS A TRUE
+
     }
   }
 }
 
 int cuentoLadrillo (){
+
     for (int i=0;i<63;i++){
+
         if(mapa[i] !=8 && mapa[i] >0) return 1;
+
     }
+
     return 0;
+
 }
 
 
 /*  INTERACCION CON EL JUEGO  */
 void jugar(){
+            try{
 
         inicializarJuegoData();//PONER LOS VALORES DEFAULT
-        while(!key[KEY_ESC]&& !fin){//CICLO CONTINUO MIENTRAS EL JUGADOR JUEGA
+
+        while(!key[KEY_ESC]&& !finJuego){//CICLO CONTINUO MIENTRAS EL JUGADOR JUEGA
+
             midi_pause();
             inicializarNivel();//CREAR NIVEL
+
                 while(!nuevonivel && !key[KEY_ESC] && vidas>0){//VERIFICA SI EL USUARIO TERMINO EL NIVEL
+
                         if(key[KEY_SPACE]&& enjuego==false){//VALIDACION DE TECLAS EN CASO EL JUGADOR ESTE JUGANDO
+
                                 if(efectos) stop_sample(SonidoInicioNivel);
                                 if(musica) play_midi(MusicaJuego,1);
                                 enjuego=true;//INICIA EL JUEGO
+
                         }
+
                     validacionBase();//VERIFICA EL ESTADO ACTUAL DE LA BASE QUE MANEJA DEL JUGADOR - LADRILLO
 
                     if(enjuego){
@@ -459,6 +592,7 @@ void jugar(){
                         nuevaBola();//CREA UNA BOLA EN LA POSICION INICIAL
 
                     }
+
                     if(key[KEY_0]){
 
                         for(int i=0;i<63;i++){
@@ -471,25 +605,23 @@ void jugar(){
                             level++;
                             nuevonivel =true;
                             fondo++;
-                            if(fondo==6) fondo =1;
+                            if(fondo==6){
+                              fondo =1;
+                            }
                             inicializarNivel();
                     }
+
                     teclasSonido();//VERIFICA SI EL JUGADOR PRESIONO LA TECLA ESPECIFICA PARA MANEJAR EL SONIDO
                     armadoPantalla();//ARMADO DE PANTALLA EN TIEMPO REAL -- CUANDO EL JUGADOR INTERACTUE CON LOS BLOQUES
+
+                    if(vidas ==0) finJuego = true;
+
+                    }
                 }
-                if(vidas ==0) fin = true;
-        }
+            }catch (exception& e)
+            {
+            cout << e.what() << endl;
+            }
 }
 
-/*  INICIO */
-int main (){
-if(inicializar() == 1) return 1;//VERIFICAR EL SISTEMA DE SONIDO , EN CASO DE ERROR CIERRA TODO
-    while(!fin){//CICLO CONTINUO MIENTRAS NO TERMINE EL JUEGO
-        armadoPantalla();//CARGAR LOS DATOS A PANTALLA
-        if( key[KEY_ESC] )fin =true;//EN CASO DE PRESIONAR ESC , SE CIERRA EL JUEGO
-        if( key[KEY_ENTER]&& !juegoiniciado ){//EN CASO DE PRESIONAR ENTER , INICIA EL JUEGO
-           jugar();//LLAMAR A FUNCION PARA INICIAR JUEGO
-        }
-    }
-}
-END_OF_MAIN()
+
