@@ -79,6 +79,7 @@ bool    finJuego=false;
 bool    fin =false;
 bool    nuevonivel=false;
 bool    enjuego=false;
+bool existeArchivo=false;
 bool    muerte=false;
 int     secuenciamuerte=1;
 bool    musica=true;
@@ -93,9 +94,7 @@ int     bordederecha;
 int     colBola;
 int     filaBola;
 int     elemento;
-
 int     fila[]={20,50,80,110,140,170,200};
-
 
 /* PANTALLAS */
 int     pant1[63]={1,1,1,1,1,1,1,1,1,
@@ -113,27 +112,30 @@ int     pant2[63]={1,2,3,4,0,0,5,6,7,
                    2,0,0,1,1,0,0,7,7,
                    3,4,5,6,7,1,2,0,0,
                    0,0,0,7,7,2,1,0,0};
+
 /* *** */
 int     mapa[63]; /*    PANTALLA AUXILIAR   */
 
 
 /* DECLARACIONES*/
-int inicializar ();
-void inicilizarSonidos();
-void inicilizarPantalla();
-void armadoPantalla ();
-void inicializarJuegoData();
-void inicializarNivel();
-void validacionBase();
-void muestraLadrillo();
-void nuevaBola();
-void teclasSonido();
-void jugar();
-void ConfiguraNivel();
-void RetomarJuego();
-int cuentoLadrillo ();
-void  dibujaMuerte();
-void destruyo_componentes();
+int     inicializar ();
+void    inicilizarSonidos();
+void    inicilizarPantalla();
+void    armadoPantalla ();
+void    inicializarJuegoData();
+void    inicializarNivel();
+void    validacionBase();
+void    muestraLadrillo();
+void    nuevaBola();
+void    teclasSonido();
+void    jugar();
+void    ConfiguraNivel();
+void    RetomarJuego();
+int     cuentoLadrillo ();
+void    dibujaMuerte();
+void    destruyo_componentes();
+void cargo_archivo();
+void grabo_archivo();
 
 
 /*  INICIO */
@@ -150,9 +152,29 @@ int main (){
                 if( key[KEY_ENTER]&& !juegoiniciado ){//EN CASO DE PRESIONAR ENTER , INICIA EL JUEGO
 
                    jugar();//LLAMAR A FUNCION PARA INICIAR JUEGO
+                midi_pause();
+                if(efectos){
+                    play_sample(SonidoGameOver,200,150,1000,0);
+                }
+
+                if(score>higscore){
+
+                        higscore=score;
+                        grabo_archivo();
 
                 }
+                while(!key[KEY_ESC] && !key[KEY_ENTER]){
+
+                    vidas=3;
+                    level=1;
+                    velocidad=velocidadInicial;
+                    score=0;
+                }
+            }
         }
+
+        destruyo_componentes();
+
     }catch (exception& e){
 
         cout << e.what() << '\n';
@@ -160,6 +182,7 @@ int main (){
     }
 
     return 0;
+
 }
 END_OF_MAIN();
 
@@ -190,6 +213,7 @@ int inicializar (){
 
     play_midi(MusicaInicio,0);
     return 0;//RETORNA 0 EN CASO DE NO TENER ERRORES
+
 }
 
 /* CARGAR SONIDOS A MEMORIA */
@@ -212,8 +236,19 @@ void inicilizarSonidos(){
 
 }
 
-void destruyo_componentes()
-{
+void destruyo_componentes(){
+
+    destroy_midi(MusicaJuego);
+    destroy_sample(SonidoInicioJuegoSelect);
+    destroy_sample(SonidoInicioNivel);
+    destroy_sample(SonidoLadrilloRoto);
+    destroy_sample(SonidoReboteBola);
+    destroy_sample(SonidoBoteBolaBase);
+    destroy_sample(SonidoReboteBolaPared);
+    destroy_sample(SonidoVidaExtra);
+    destroy_sample(SonidoVidaPerdida);
+    destroy_sample(SonidoGameOver);
+	destroy_bitmap(buffer);
 
 }
 
@@ -259,6 +294,7 @@ void inicilizarPantalla(){
 
 /* MOSTRADO DE ELEMENTOS DE PANTALLA */
 void armadoPantalla (){
+
      try
         {
 
@@ -275,7 +311,7 @@ void armadoPantalla (){
     textprintf_ex(panel,NTRS,170,150,makecol(0,0,0),makecol(0,0,0),"              ");//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR
     textprintf_ex(panel,NTRS,170,150,makecol(255,0,0),makecol(0,0,0),"%d",vidas);//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR (LEVE)
 
-  //  textprintf_ex(buffer, NTRS, 740, 140, makecol(255,255,255),makecol(0,0,0), "Highscore : %i", highScore);
+    textprintf_ex(buffer, NTRS, 740, 140, makecol(255,255,255),makecol(0,0,0), "Highscore : %i", higscore);
 
     /* *** */
     draw_sprite(buffer,recuadro,5,10);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
@@ -647,6 +683,38 @@ void jugar(){
             cout << e.what() << endl;
 
             }
+}
+
+void cargo_archivo(){
+
+   ifstream puntaje;
+   char textoPuntaje[100];
+
+   puntaje.open("high.dat");
+   if(puntaje.fail()) {
+
+      existeArchivo=false;
+      return;
+
+   }
+
+   if(!puntaje.eof()) {
+
+        puntaje.getline(textoPuntaje, sizeof(puntaje));
+        string s=string(textoPuntaje);
+        highScore=atoi(s.c_str());
+
+   }
+
+   puntaje.close();
+}
+
+void grabo_archivo(){
+
+    ofstream puntaje;
+    puntaje.open("high.dat");
+    puntaje << highScore << endl;
+    puntaje.close();
 }
 
 
