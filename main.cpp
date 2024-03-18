@@ -79,7 +79,6 @@ bool    finJuego=false;
 bool    fin =false;
 bool    nuevonivel=false;
 bool    enjuego=false;
-bool existeArchivo=false;
 bool    muerte=false;
 int     secuenciamuerte=1;
 bool    musica=true;
@@ -134,8 +133,8 @@ void    RetomarJuego();
 int     cuentoLadrillo ();
 void    dibujaMuerte();
 void    destruyo_componentes();
-void cargo_archivo();
-void grabo_archivo();
+void    cargo_archivo();
+void    grabo_archivo();
 
 
 /*  INICIO */
