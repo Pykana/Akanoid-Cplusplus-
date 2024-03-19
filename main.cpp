@@ -164,11 +164,13 @@ int main (){
                 }
                 while(!key[KEY_ESC] && !key[KEY_ENTER]){
 
+                }
+
                     vidas=3;
                     level=1;
                     velocidad=velocidadInicial;
                     score=0;
-                }
+
             }
         }
 
@@ -204,6 +206,8 @@ int inicializar (){
     /* **** */
     inicilizarPantalla();//INICIA LA CARGA DE IMAGENES
     inicilizarSonidos();//INICIA LA CARGA DE SONIDOS
+
+    cargo_archivo();
 
     /* CARGA DE FUENTES */
     datafile=load_datafile("font/Fuentes.dat");//CARGA DE FUENTES DESDE EL ARCHIVO GENERADO POR TTF2PCX Y GRABBER
@@ -310,7 +314,7 @@ void armadoPantalla (){
     textprintf_ex(panel,NTRS,170,150,makecol(0,0,0),makecol(0,0,0),"              ");//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR
     textprintf_ex(panel,NTRS,170,150,makecol(255,0,0),makecol(0,0,0),"%d",vidas);//DIBUJAR EN PANEL , USAR LETRA NTRS, POSICION 130 (X), POSICION 3(Y), COLOR DE LETRA, COLOR DE FONDO, OBJETO A DIBUJAR (LEVE)
 
-    textprintf_ex(buffer, NTRS, 740, 140, makecol(255,255,255),makecol(0,0,0), "Highscore : %i", higscore);
+    textprintf_ex(buffer, NTRS, 700, 100, makecol(255,255,255),makecol(0,0,0), "Highscore : %i", higscore);
 
     /* *** */
     draw_sprite(buffer,recuadro,5,10);//CARGAR SPRITE EN LA POSICION ESTABLECIDA    (X),  (Y)
@@ -574,6 +578,7 @@ void nuevaBola(){
 
 /* VALIDACION DE LA TECLAS DE SONIDO */
 void teclasSonido(){
+
       if(key[KEY_DEL]){//SI PRESIONA DEL
 
         if(musica){//VERIFICA EL ESTADO DE MUSICA
@@ -617,7 +622,8 @@ int cuentoLadrillo (){
 
 /*  INTERACCION CON EL JUEGO  */
 void jugar(){
-            try{
+
+        try{
 
         inicializarJuegoData();//PONER LOS VALORES DEFAULT
 
@@ -686,34 +692,35 @@ void jugar(){
 
 void cargo_archivo(){
 
-   ifstream puntaje;
-   char textoPuntaje[100];
+   ifstream puntaje;                //TIPO DE OBJETO TIPO ARCHIVO  - IMPUT
+   char textoPuntaje[100];          //REGISTRO DE ARCHIVO
 
-   puntaje.open("high.dat");
+   puntaje.open("high.dat");        //NOMBRE DE ARCHIVO A ABRIR
+
    if(puntaje.fail()) {
 
-      existeArchivo=false;
+      existearchivo=false;          //ARCHIVO NO EXISTE
       return;
 
    }
 
    if(!puntaje.eof()) {
 
-        puntaje.getline(textoPuntaje, sizeof(puntaje));
-        string s=string(textoPuntaje);
-        highScore=atoi(s.c_str());
+        puntaje.getline(textoPuntaje, sizeof(puntaje));     //QUE TEXTO PUNTAJE CAMBIE SU DIMENSION ES PUNTAJE
+        string s=string(textoPuntaje);                      //CONVERCION DEL PUNTAJE A STRING
+        higscore=atoi(s.c_str());                          //TRANSFORMAR EL STRING A DATO NUMERICO
 
    }
 
-   puntaje.close();
+   puntaje.close();                                         //CERRAR ARCHIVO
 }
 
 void grabo_archivo(){
 
-    ofstream puntaje;
-    puntaje.open("high.dat");
-    puntaje << highScore << endl;
-    puntaje.close();
+    ofstream puntaje;                                       //OUTPUT -
+    puntaje.open("high.dat");                               //ABRE Y BORRA CONTENIDO
+    puntaje << higscore << endl;                           //PUNTAJE TOMARA EL VALOR DE HIGHSCORE
+    puntaje.close();                                        //CIERRA ARCHIVO
 }
 
 
